@@ -191,7 +191,10 @@ class RoboFile extends \Robo\Tasks
 			"obfuscation_options" => $options,
 		]);
 
-		$obfuscator->obfuscateDirectory(getcwd() . '/upload/', $dir . '/');
+		// Copy /upload to /obf
+		$this->_mkdir($dir . '/upload');
+
+		$obfuscator->obfuscateDirectory(getcwd() . '/upload/', $dir . '/upload/');
 
 		$this->taskFilesystemStack()->copy(getcwd() . '/install.xml', $dir . '/install.xml')->run();
 

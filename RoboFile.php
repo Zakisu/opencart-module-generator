@@ -18,7 +18,7 @@ class RoboFile extends \Robo\Tasks
 {
 	public function moduleNew()
 	{
-		$name = $this->ask("Module Name");
+		$name = getenv("MODULE_NAME");
 
 		$filename = str_replace(' ', '_', strtolower($name));
 		$path = "extension/module";
@@ -26,12 +26,29 @@ class RoboFile extends \Robo\Tasks
 		$this->makeController($path, $filename);
 		$this->makeModel($path, $filename);
 		$this->makeTwig($path, $filename);
+		$this->makeInstallXML();
 
 		$language_file = $this->makeLanguage($path, $filename);
 
 		$this->taskWriteToFile($language_file)
 			->line("<?php\n")
 			->line('$_["heading_title"] = "' . $name . '";')
+			->run();
+	}
+
+	private function makeInstallXML()
+	{
+		$file_path = getcwd() . '/install.xml';
+
+		$this->taskFilesystemStack()->remove($file_path)->run();
+		$this->taskWriteToFile($file_path)
+			->line("<modification>")
+			->line("\t<name>" . getenv("MODULE_NAME") . "</name>")
+			->line("\t<code>" . str_replace(" ", "", getenv("MODULE_NAME")) . "</code>")
+			->line("\t<version>" . getenv("MODULE_VER") . "</version>")
+			->line("\t<link>" . getenv("STORE_DOMAIN") . "</link>")
+			->line("\t<author><![CDATA[" . getenv("AUTHOR") . "]]></author>")
+			->line("</modification>")
 			->run();
 	}
 
@@ -147,7 +164,7 @@ class RoboFile extends \Robo\Tasks
 		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
 		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
 		$filename = $module_name . $ver . '.ocmod.zip';
-		$this->taskExec('zip')->dir(getcwd())->arg('-r')->arg($dir . '/' . $filename)->arg('./')->run();
+		$this->taskExec('zip')->dir(getcwd())->arg('-r')->arg($dir . '/' . $filename)->arg('upload/')->arg('install.xml')->run();
 
 		if ($opts['with-obf']) {
 			$this->moduleObf();
@@ -157,7 +174,7 @@ class RoboFile extends \Robo\Tasks
 	public function moduleObf()
 	{
 		$dir = getcwd() . '/obf';
-		
+
 		$this->taskDeleteDir($dir)->run();
 		$this->taskFileSystemStack()->mkdir($dir)->run();
 
@@ -176,7 +193,7 @@ class RoboFile extends \Robo\Tasks
 
 		$obfuscator->obfuscateDirectory(getcwd() . '/upload/', $dir . '/');
 
-		$this->taskFilesystemStack()->copy(getcwd() . '/install.xml', $dir. '/install.xml')->run();
+		$this->taskFilesystemStack()->copy(getcwd() . '/install.xml', $dir . '/install.xml')->run();
 
 		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
 		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';

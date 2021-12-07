@@ -145,7 +145,7 @@ class RoboFile extends \Robo\Tasks
 		$this->taskFileSystemStack()->mkdir($dir)->run();
 
 		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
-		$ver = getenv("MODULE_VER") ? "v" . getenv("MODULE_VER") : '';
+		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
 		$filename = $module_name . $ver . '.ocmod.zip';
 		$this->taskExec('zip')->dir(getcwd())->arg('-r')->arg($dir . '/' . $filename)->arg('./')->run();
 
@@ -179,7 +179,7 @@ class RoboFile extends \Robo\Tasks
 		$this->taskFilesystemStack()->copy(getcwd() . '/install.xml', $dir. '/install.xml')->run();
 
 		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
-		$ver = getenv("MODULE_VER") ? "v" . getenv("MODULE_VER") : '';
+		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
 		$filename = $module_name . $ver . '-obf.ocmod.zip';
 		$this->taskExec('zip')->dir($dir)->arg('-r')->arg(getcwd() . '/build/' . $filename)->arg('./')->run();
 

@@ -15,7 +15,7 @@ Create a basic template for Opencart module using Robo. This repo modified from 
 # Install dependecies  
     $ composer install  
   
-#.env file  
+# .ENV file  
     $ cp .env.example .env
 
 Setup your `.env` file

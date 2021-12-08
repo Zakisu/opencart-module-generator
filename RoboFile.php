@@ -155,15 +155,29 @@ class RoboFile extends \Robo\Tasks
 		})->run();
 	}
 
+	private function getBuildName($name) {
+		$build_name = strtolower(str_replace(" ", "-", $name));
+		return $build_name;
+	}
+
 	public function moduleBuild($opts = ["with-obf" => false])
 	{
 		$dir = getcwd() . '/build';
 		$this->taskDeleteDir($dir)->run();
 		$this->taskFileSystemStack()->mkdir($dir)->run();
 
-		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
-		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
-		$filename = $module_name . $ver . '.ocmod.zip';
+		// Check if install.xml exist or not
+		$xml = simplexml_load_file(getcwd() . "/install.xml");
+
+		if ($xml) {
+			$module_name = $xml->name;
+			$ver = ".v" . $xml->version;
+		} else {
+			$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
+			$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
+		}
+
+		$filename = $this->getBuildName($module_name) . $ver . '.ocmod.zip';
 		$this->taskExec('zip')->dir(getcwd())->arg('-r')->arg($dir . '/' . $filename)->arg('upload/')->arg('install.xml')->run();
 
 		if ($opts['with-obf']) {
@@ -191,6 +205,17 @@ class RoboFile extends \Robo\Tasks
 			"obfuscation_options" => $options,
 		]);
 
+		// Check if install.xml exist or not
+		$xml = simplexml_load_file(getcwd() . "/install.xml");
+
+		if ($xml) {
+			$module_name = $xml->name;
+			$ver = ".v" . $xml->version;
+		} else {
+			$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
+			$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
+		}
+
 		// Copy /upload to /obf
 		$this->_mkdir($dir . '/upload');
 
@@ -198,9 +223,7 @@ class RoboFile extends \Robo\Tasks
 
 		$this->taskFilesystemStack()->copy(getcwd() . '/install.xml', $dir . '/install.xml')->run();
 
-		$module_name = getenv("MODULE_NAME") ? getenv("MODULE_NAME") : "build";
-		$ver = getenv("MODULE_VER") ? ".v" . getenv("MODULE_VER") : '';
-		$filename = $module_name . $ver . '-obf.ocmod.zip';
+		$filename = $this->getBuildName($module_name) . $ver . '-obf.ocmod.zip';
 		$this->taskExec('zip')->dir($dir)->arg('-r')->arg(getcwd() . '/build/' . $filename)->arg('./')->run();
 
 		$this->taskDeleteDir($dir)->run();
